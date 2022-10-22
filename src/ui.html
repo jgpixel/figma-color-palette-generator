@@ -1,0 +1,975 @@
+<main>
+
+	<div id="modal-bg" class="modal-bg">
+		<div class="modal-content">
+			<h2>Edit Color</h2>
+			<div class="new-color-form" autocomplete="off" spellcheck="false">
+				<input id="hex-code-input" type="text" name="color-code">
+				<div id="RGB-input-el" class="RGB-input-el">
+					<span class="color-val">
+						<label for="r-val">r:</label>
+						<input id="r-val" type="text" data-val data-rgb-val>
+					</span>
+					<span class="color-val">
+						<label for="g-val">g:</label>
+						<input id="g-val" type="text" data-val data-rgb-val>
+					</span>
+					<span class="color-val">
+						<label for="b-val">b:</label>
+						<input id="b-val" type="text" data-val data-rgb-val>
+					</span>
+				</div>
+				<div id="HSL-input-el" class="HSL-input-el">
+					<span class="color-val">
+						<label for="h-val">h:</label>
+						<input id="h-val" type="text" data-val data-hsl-val>
+					</span>
+					<span class="color-val">
+						<label for="s-val">s:</label>
+						<input id="s-val" type="text" data-val data-hsl-val>
+						%
+					</span>
+					<span class="color-val">
+						<label for="l-val">l:</label>
+						<input id="l-val" type="text" data-val data-hsl-val>
+						%
+					</span>
+				</div>
+				<span id="error-msg-el" class="error-message"></span>
+				<div class="edit-color-buttons">
+					<button id="cancel-btn" class="cancel-btn" type="button">Cancel</button>
+					<button id="save-btn" class="save-btn" type="button">Save</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="colors-root" class="colors"></div>
+
+	<div class="menu">
+		<button id="change-color-mode-btn" class="menu-button">
+			<img class="menu-button-icon" src="https://jgpixel.com/images/figma-plugin/color-wheel.svg" alt="Change color mode icon" draggable="false">
+			<span class="menu-button-text">Change Color Mode</span>
+		</button>
+
+		<button id="randomize-btn" class="menu-button">
+			<img class="menu-button-icon" src="https://jgpixel.com/images/figma-plugin/randomize.svg" alt="Randomize colors" draggable="false">
+			<span class="menu-button-text">Randomize</span>
+		</button>
+
+		<button id="new-color-btn" class="menu-button">
+			<img class="menu-button-icon" src="https://jgpixel.com/images/figma-plugin/add.svg" alt="Change color mode icon"
+				draggable="false">
+			<span class="menu-button-text">New Color</span>
+		</button>
+
+		<button id="export-btn" class="menu-button">
+			<img class="menu-button-icon" src="https://jgpixel.com/images/figma-plugin/export.svg" alt="Export to figma icon" draggable="false">
+			<span class="menu-button-text">Export</span>
+		</button>
+	</div>
+
+</main>
+
+<style>
+	@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;700;900&display=swap');
+
+	* {
+		font-family: "Red Hat Display", sans-serif;
+		box-sizing: border-box;
+	}
+
+	body,
+	html {
+		margin: 0;
+		padding: 0;
+		background-color: var(--figma-color-bg);
+		overflow-y: hidden;
+	}
+
+	main {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	button {
+		outline: none;
+		background: none;
+		cursor: pointer;
+	}
+
+	img {
+		-khtml-user-select: none;
+		-o-user-select: none;
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+
+	.colors {
+		display: flex;
+		justify-content: space-around;
+		height: 80%;
+		flex-wrap: wrap;
+	}
+
+	/* color block */
+
+	.color {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		padding: 25px;
+		height: 100%;
+		color: black;
+		flex: 1;
+		text-align: center;
+	}
+
+	.color-code-wrapper {
+		height: 20%;
+	}
+
+	.color-code {
+		font-size: 18px;
+		cursor: pointer;
+		opacity: 1;
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.color-options {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		height: 60%;
+		cursor: pointer;
+	}
+
+	.color button {
+		margin: 10px 0;
+		opacity: 1;
+		transition: opacity 0.25s ease-in-out;
+	}
+
+	.color button:hover,
+	.color-code:hover {
+		opacity: 0.65;
+	}
+
+	.color.black-col .color-block-icon {
+		filter: invert();
+	}
+
+	.colors button {
+		border: none;
+	}
+
+	.color-block-icon {
+		width: 30px;
+	}
+
+	/* color block ^ */
+
+	/* menu */
+
+	.menu {
+		width: 100%;
+		display: flex;
+		justify-content: space-around;
+		align-items: center;
+		background-color: var(--figma-color-bg);
+		height: 20%;
+	}
+
+	.menu-button {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: none;
+		background: none;
+		color: var(--figma-color-text);
+		padding: 5px 10px;
+		font-size: 16px;
+		border-radius: 8px;
+	}
+
+	.menu-button .menu-button-icon,
+	.menu-button .menu-button-text {
+		opacity: 1;
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.menu-button:hover .menu-button-icon,
+	.menu-button:hover .menu-button-text {
+		opacity: 0.65;
+	}
+
+	.menu-button-icon {
+		width: 22px;
+		margin-right: 8px;
+	}
+
+	.figma-light .menu-button-icon {
+		filter: invert();
+	}
+
+	.colors .black-col * {
+		color: black;
+	}
+
+	.colors .white-col * {
+		color: white;
+	}
+
+	/* menu ^ */
+
+	/* modal */
+
+	.modal-bg {
+		display: none;
+		position: fixed;
+		z-index: 1;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		background-color: rgba(0, 0, 0, 0.4);
+		text-align: center;
+	}
+
+	.modal-content {
+		background-color: var(--figma-color-bg);
+		margin: auto;
+		padding: 25px;
+		border-radius: 10px;
+		width: 50%;
+		position: absolute;
+		top: 40%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+	}
+
+	h2 {
+		margin: 0 0 15px 0;
+	}
+
+	.modal-content * {
+		color: var(--figma-color-text);
+	}
+
+	.modal-content input {
+		outline: none;
+		background: none;
+		border: none;
+		border-bottom: 1px solid var(--figma-color-text);
+		text-align: center;
+		font-size: 16px;
+	}
+
+	.new-color-form {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.new-color-form button {
+		width: fit-content;
+		padding: 6px 15px;
+		margin: 0 5px;
+		font-size: 16px;
+		border-radius: 6px;
+	}
+
+	.edit-color-buttons {
+		margin-top: 10px;
+	}
+
+	.edit-color-buttons button {
+		opacity: 1;
+		border: 1px solid var(--figma-color-text);
+		transition: opacity 0.2s ease-in-out;
+	}
+
+	.edit-color-buttons button:hover {
+		opacity: 0.7;
+	}
+
+	.save-btn {
+		background-color: var(--figma-color-text);
+		color: var(--figma-color-bg);
+	}
+
+	.error-message {
+		color: var(--figma-color-text-danger);
+		font-size: 14px;
+		margin-top: 10px;
+	}
+
+	.RGB-input-el,
+	.HSL-input-el {
+		width: 70%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.RGB-input-el input,
+	.HSL-input-el input {
+		width: 50%;
+	}
+
+	.color-val {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	/* modal ^ */
+
+</style>
+
+<script>
+	const colorsRoot = document.getElementById("colors-root");
+
+	const modalBg = document.getElementById("modal-bg");
+	const errorMsgEl = document.getElementById("error-msg-el");
+
+	const hexCodeInput = document.getElementById("hex-code-input");
+
+	const RGBInputEl = document.getElementById("RGB-input-el");
+	const rInput = document.getElementById("r-val");
+	const gInput = document.getElementById("g-val");
+	const bInput = document.getElementById("b-val");
+
+	const HSLInputEl = document.getElementById("HSL-input-el");
+	const hInput = document.getElementById("h-val");
+	const sInput = document.getElementById("s-val");
+	const lInput = document.getElementById("l-val");
+
+	const dataVals = document.querySelectorAll("[data-val]");
+	const RGBInps = document.querySelectorAll("[data-rgb-val]");
+	const HSLInps = document.querySelectorAll("[data-hsl-val]");
+
+	let selectedColorCodeEl;
+	let selectedColorDiv;
+
+	class ColorModes {
+		static hex = 0;
+		static rgb = 1;
+		static hsl = 2;
+	}
+
+	let colorMode = ColorModes.hex;
+
+	const colorBlocks = [];
+	const colorCodeEls = [];
+	const unlockedColorBlocks = [];
+	const unlockedColorCodeEls = [];
+
+	function createColorBlock() {
+		if (colorBlocks.length === 6) {
+			alert("Maximum colors in palette reached.")
+			return;
+		}
+
+		let locked = false;
+
+		const rgbColor = getRGBColor();
+
+		const [r, g, b] = rgbColor;
+
+		const textColorClass = isLight(...rgbColor) ? "black-col" : "white-col";
+
+		const colorDiv = document.createElement("div");
+		const colorCodeEl = document.createElement("div");
+		const colorCodeText = document.createElement("span");
+		const colorOptions = document.createElement("div");
+		const lockBtn = document.createElement("button");
+		const lockIcon = document.createElement("img");
+		const copyBtn = document.createElement("button");
+		const copyIcon = document.createElement("img");
+		const crossBtn = document.createElement("button");
+		const crossIcon = document.createElement("img");
+
+		const codeElText = getCodeElText(r, g, b);
+
+		colorsRoot.appendChild(colorDiv);
+		colorDiv.classList.add("color");
+		colorDiv.classList.add(textColorClass);
+		colorDiv.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+		colorDiv.appendChild(colorCodeEl);
+		colorCodeEl.classList.add("color-code-wrapper");
+		colorCodeEl.appendChild(colorCodeText);
+		colorCodeText.classList.add("color-code");
+		colorCodeText.textContent = codeElText;
+		colorDiv.appendChild(colorOptions);
+		colorOptions.classList.add("color-options");
+		colorOptions.appendChild(lockBtn);
+		lockBtn.appendChild(lockIcon);
+		lockIcon.setAttribute("src", "https://jgpixel.com/images/figma-plugin/unlock.svg");
+		lockIcon.setAttribute("alt", "lock color");
+		lockIcon.setAttribute("draggable", "false");
+		lockIcon.classList.add("color-block-icon");
+		colorOptions.appendChild(copyBtn);
+		copyBtn.appendChild(copyIcon);
+		copyIcon.setAttribute("src", "https://jgpixel.com/images/figma-plugin/copy.svg");
+		copyIcon.setAttribute("alt", "copy color");
+		copyIcon.setAttribute("draggable", "false");
+		copyIcon.classList.add("color-block-icon");
+		colorDiv.appendChild(crossBtn);
+		crossBtn.appendChild(crossIcon);
+		crossIcon.setAttribute("src", "https://jgpixel.com/images/figma-plugin/cross.svg");
+		crossIcon.setAttribute("alt", "delete color");
+		crossIcon.setAttribute("draggable", "false");
+		crossIcon.classList.add("color-block-icon");
+
+		colorBlocks.push(colorDiv);
+		colorCodeEls.push(colorCodeText);
+		unlockedColorBlocks.push(colorDiv);
+		unlockedColorCodeEls.push(colorCodeText);
+
+		colorCodeEl.addEventListener("click", () => {
+			modalBg.style.display = "block";
+
+			selectedColorCodeEl = colorCodeText;
+			selectedColorDiv = colorDiv;
+
+			errorMsgEl.textContent = "";
+
+			hexCodeInput.style.display = "none";
+			RGBInputEl.style.display = "none";
+			HSLInputEl.style.display = "none";
+
+			const colorCodeVal = colorCodeText.textContent;
+
+			switch (colorMode) {
+				case ColorModes.hex:
+					hexCodeInput.style.display = "block";
+					hexCodeInput.value = colorCodeText.textContent;
+
+					hexCodeInput.focus();
+
+					break;
+				case ColorModes.rgb:
+					RGBInputEl.style.display = "flex";
+
+					const rgb = colorCodeVal.substring(4, colorCodeVal.length - 1);
+					const [r, g, b] = rgb.split(", ");
+
+					rInput.value = r;
+					gInput.value = g;
+					bInput.value = b;
+
+					rInput.focus();
+
+					break;
+				case ColorModes.hsl:
+					HSLInputEl.style.display = "flex";
+
+					let hsl = colorCodeVal.substring(4, colorCodeVal.length - 1);
+					hsl = hsl.replaceAll("%", "");
+
+					const [h, s, l] = hsl.split(", ");
+
+					hInput.value = h;
+					sInput.value = s;
+					lInput.value = l;
+
+					hInput.focus();
+
+					break;
+			}
+		});
+
+		lockBtn.addEventListener("click", () => {
+			if (locked) {
+				unlockedColorBlocks.push(colorDiv);
+				unlockedColorCodeEls.push(colorCodeText);
+				lockIcon.setAttribute("src", "https://jgpixel.com/images/figma-plugin/unlock.svg");
+			} else {
+				unlockedColorBlocks.splice(unlockedColorBlocks.indexOf(colorDiv), 1);
+				unlockedColorCodeEls.splice(unlockedColorCodeEls.indexOf(colorCodeText), 1)
+				lockIcon.setAttribute("src", "https://jgpixel.com/images/figma-plugin/lock.svg");
+			}
+
+			locked = !locked;
+		});
+
+		copyBtn.addEventListener("click", () => {
+			if (document.body.createTextRange) {
+				const range = document.body.createTextRange();
+
+				range.moveToElementText(colorCodeEl);
+				range.select();
+
+				document.execCommand("copy");
+
+				document.selection.empty();
+			} else if (window.getSelection) {
+				const selection = window.getSelection();
+				const range = document.createRange();
+
+				range.selectNodeContents(colorCodeEl);
+				selection.removeAllRanges();
+				selection.addRange(range);
+
+				document.execCommand("copy");
+
+				window.getSelection().removeAllRanges();
+			} else {
+				alert("Could not copy: unsupported browser.");
+			}
+		});
+
+		crossBtn.addEventListener("click", () => {
+			if (colorBlocks.length === 1) return;
+
+			colorBlocks.splice(colorBlocks.indexOf(colorDiv), 1);
+			colorCodeEls.splice(colorCodeEls.indexOf(colorCodeEl), 1);
+			unlockedColorBlocks.splice(unlockedColorBlocks.indexOf(colorDiv), 1);
+			unlockedColorCodeEls.splice(unlockedColorCodeEls.indexOf(colorCodeEl), 1);
+
+			colorDiv.remove();
+		});
+	}
+
+	dataVals.forEach(valueInp => {
+		valueInp.addEventListener("input", () => {
+			errorMsgEl.textContent = "";
+
+			const val = valueInp.value;
+			const valueLen = valueInp.value.length;
+
+			if (val.includes(" ")) {
+				valueInp.value = val.replaceAll(" ", "");
+			}
+		});
+	});
+
+	window.addEventListener("click", (e) => {
+		if (e.target === modalBg) {
+			modalBg.style.display = "none";
+		}
+	});
+
+	function getRGBColor() {
+		const r = randomNum();
+		const g = randomNum();
+		const b = randomNum();
+
+		return [r, g, b]
+	}
+
+	function isLight(r, g, b) {
+		const hsp = Math.sqrt(0.299 * (r * r) + 0.587 * (g * g) + 0.114 * (b * b));
+
+		if (hsp > 127.5) {
+			return true; // light
+		} else {
+			return false; // dark
+		}
+	}
+
+	function randomNum() {
+		return Math.floor(Math.random() * 255) + 1;
+	}
+
+	const randomizeBtn = document.getElementById("randomize-btn");
+
+	randomizeBtn.addEventListener("click", () => {
+		unlockedColorBlocks.forEach((block, index) => {
+			const rgbColor = getRGBColor();
+
+			const [r, g, b] = rgbColor;
+
+			block.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+			const codeElText = getCodeElText(r, g, b);
+
+			unlockedColorCodeEls[index].textContent = codeElText;
+
+			block.classList.remove("black-col");
+			block.classList.remove("white-col");
+			block.classList.add(isLight(...rgbColor) ? "black-col" : "white-col");
+		});
+	});
+
+	function getCodeElText(r, g, b) {
+		switch (colorMode) {
+			case ColorModes.hex:
+				return RGBToHex(r, g, b);
+			case ColorModes.rgb:
+				return `rgb(${r}, ${g}, ${b})`;
+			case ColorModes.hsl:
+				return RGBToHSL(`rgb(${r}, ${g}, ${b})`);
+		}
+	}
+
+	// ========== EDIT COLOR MODAL ==========
+
+	const saveBtn = document.getElementById("save-btn");
+	const cancelBtn = document.getElementById("cancel-btn");
+
+	hexCodeInput.addEventListener("input", () => {
+		errorMsgEl.textContent = "";
+
+		const val = hexCodeInput.value;
+		const valueLen = hexCodeInput.value.length;
+
+		if (valueLen < 1) {
+			hexCodeInput.value = "#";
+		} else if (val.includes(" ")) {
+			hexCodeInput.value = val.replaceAll(" ", "");;
+		} else if (valueLen >= 7) {
+			hexCodeInput.value = val.substring(0, 7);
+		}
+	});
+
+	hexCodeInput.addEventListener("keyup", () => {
+		if (hexCodeInput.value.length >= 7) {
+			hexCodeInput.value = hexCodeInput.value.substring(0, 7);
+		}
+		if (hexCodeInput.value.substring(0, 1) != "#") {
+			hexCodeInput.value = hexCodeInput.value.replaceAll("#", "");
+			hexCodeInput.value = "#" + hexCodeInput.value;
+		}
+	});
+
+	saveBtn.addEventListener("click", () => {
+		switch (colorMode) {
+			case ColorModes.hex:
+				const hexRegex = /^#([A-Fa-f0-9]{6})$/g;
+				const hexMinRegex = /^#[A-Fa-f0-9]{3}$/g;
+				const newColor = hexCodeInput.value;
+
+				if (!hexRegex.test(newColor)) {
+					errorMsgEl.textContent = "Enter a valid hex code.";
+					if (hexMinRegex.test(newColor)) {
+						errorMsgEl.textContent = "Abbreviated hex values not supported.";
+					}
+					return;
+				}
+
+				const hexToRGBVal = hexToRGB(newColor);
+				const [r, g, b] = hexToRGBVal.substring(4, hexToRGBVal.length - 1).split(", ");
+
+				selectedColorDiv.classList.remove("black-col");
+				selectedColorDiv.classList.remove("white-col");
+
+				selectedColorCodeEl.textContent = newColor.toUpperCase();
+				selectedColorDiv.style.backgroundColor = newColor;
+				selectedColorDiv.classList.add(isLight(r, g, b) ? "black-col" : "white-col");
+
+				break;
+			case ColorModes.rgb:
+				const editedRGBVals = [];
+
+				for (let i = 0; i < 3; i++) {
+					if (parseFloat(RGBInps[i].value) > 255 || isNaN(parseFloat(RGBInps[i].value))) {
+						errorMsgEl.textContent = "Enter a valid RGB value.";
+						return;
+					}
+					editedRGBVals.push(parseFloat(RGBInps[i].value));
+				}
+
+				selectedColorDiv.classList.remove("black-col");
+				selectedColorDiv.classList.remove("white-col");
+
+				selectedColorCodeEl.textContent = `rgb(${editedRGBVals[0]}, ${editedRGBVals[1]}, ${editedRGBVals[2]})`;
+				selectedColorDiv.style.backgroundColor = `rgb(${editedRGBVals[0]}, ${editedRGBVals[1]}, ${editedRGBVals[2]})`;
+				selectedColorDiv.classList.add(isLight(editedRGBVals[0], editedRGBVals[1], editedRGBVals[2]) ? "black-col" : "white-col");
+				
+				break;
+			case ColorModes.hsl:
+				const editedHSLVals = [];
+
+				if (parseFloat(HSLInps[0].value) > 360 || isNaN(parseFloat(HSLInps[0].value))) {
+					errorMsgEl.textContent = "Enter a valid HSL value.";
+					return;
+				}
+
+				editedHSLVals.push(parseFloat(HSLInps[0].value));
+
+				for (let i = 1; i < 3; i++) {
+					if (parseFloat(HSLInps[i].value) > 100 || isNaN(parseFloat(HSLInps[i].value))) {
+						errorMsgEl.textContent = "Enter a valid HSL value.";
+						return;
+					}
+					editedHSLVals.push(parseFloat(HSLInps[i].value));
+				}
+
+				let hexColor = HSLToHex(`hsl(${editedHSLVals[0]}, ${editedHSLVals[1]}, ${editedHSLVals[2]})`);
+				let RGBColor = hexToRGB(hexColor);
+
+				RGBColor = RGBColor.substring(4, RGBColor.length - 1);
+				let [rVal, gVal, bVal] = RGBColor.split(", ");
+
+				selectedColorDiv.classList.remove("black-col");
+				selectedColorDiv.classList.remove("white-col");
+
+				selectedColorCodeEl.textContent = `hsl(${editedHSLVals[0]}, ${editedHSLVals[1]}%, ${editedHSLVals[2]}%)`;
+				selectedColorDiv.style.backgroundColor = `hsl(${editedHSLVals[0]}, ${editedHSLVals[1]}%, ${editedHSLVals[2]}%)`;
+				selectedColorDiv.classList.add(isLight(rVal, gVal, bVal) ? "black-col" : "white-col");
+
+				break;
+		}
+
+		modalBg.style.display = "none";
+	});
+
+	dataVals.forEach(inp => {
+		inp.addEventListener("keyup", e => {
+			if (e.keyCode < 48 || e.keyCode > 57) {
+				inp.value = inp.value.replaceAll(/[^0-9\.]+/g, "");
+			}
+		});
+	});
+
+	cancelBtn.addEventListener("click", () => {
+		modalBg.style.display = "none";
+	});
+
+	// ========== EDIT COLOR MODAL ^ ==========
+
+	// ========== CONVERTERS ==========
+
+	function componentToHex(c) {
+		const hex = c.toString(16);
+		return hex.length == 1 ? "0" + hex : hex;
+	}
+
+	function RGBToHex(r, g, b) {
+		return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`.toUpperCase();
+	}
+
+	function hexToRGB(hex) {
+		hex = hex.substring(1, hex.length);
+
+		const bigint = parseInt(hex, 16);
+		const r = (bigint >> 16) & 255;
+		const g = (bigint >> 8) & 255;
+		const b = bigint & 255;
+
+		return `rgb(${r}, ${g}, ${b})`;
+	}
+
+	function RGBToHSL(rgb) {
+		rgb = rgb.substring(4, rgb.length - 1);
+
+		let [r, g, b] = rgb.split(", ");
+
+		r /= 255;
+		g /= 255;
+		b /= 255;
+
+		const cmin = Math.min(r, g, b);
+		const cmax = Math.max(r, g, b);
+		const delta = cmax - cmin;
+
+		let h = 0;
+		let s = 0;
+		let l = 0;
+
+		if (delta === 0) {
+			h = 0;
+		} else if (cmax === r) {
+			h = ((g - b) / delta) % 6;
+		} else if (cmax === g)
+			h = (b - r) / delta + 2;
+		else {
+			h = (r - g) / delta + 4;
+		}
+
+		h = Math.round(h * 60);
+
+		if (h < 0) {
+			h += 360;
+		}
+
+		l = (cmax + cmin) / 2;
+
+		s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+
+		s = +(s * 100).toFixed(1);
+		l = +(l * 100).toFixed(1);
+
+		return `hsl(${h}, ${s}%, ${l}%)`;
+	}
+
+	function HSLToHex(hsl) {
+		hsl = hsl.substring(4, hsl.length - 1);
+		hsl = hsl.replaceAll("%", "");
+
+		let h, s, l;
+		[h, s, l] = hsl.split(", ");
+
+		s /= 100;
+		l /= 100;
+
+		let c = (1 - Math.abs(2 * l - 1)) * s;
+		let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+		let m = l - c / 2;
+
+		let r = 0;
+		let g = 0;
+		let b = 0;
+
+		if (0 <= h && h < 60) {
+			r = c;
+			g = x;
+			b = 0;
+		} else if (60 <= h && h < 120) {
+			r = x;
+			g = c;
+			b = 0;
+		} else if (120 <= h && h < 180) {
+			r = 0;
+			g = c;
+			b = x;
+		} else if (180 <= h && h < 240) {
+			r = 0;
+			g = x;
+			b = c;
+		} else if (240 <= h && h < 300) {
+			r = x;
+			g = 0;
+			b = c;
+		} else if (300 <= h && h < 360) {
+			r = c;
+			g = 0;
+			b = x;
+		}
+
+		r = Math.round((r + m) * 255).toString(16);
+		g = Math.round((g + m) * 255).toString(16);
+		b = Math.round((b + m) * 255).toString(16);
+
+		if (r.length == 1) {
+			r = "0" + r;
+		}
+		if (g.length == 1) {
+			g = "0" + g;
+		}
+		if (b.length == 1) {
+			b = "0" + b;
+		}
+
+		return `#${r}${g}${b}`.toUpperCase();
+	}
+
+	// ========== CONVERTERS ^ ==========
+
+	// ========== MENU ==========
+
+	const exportBtn = document.getElementById("export-btn");
+
+	exportBtn.addEventListener("click", () => {
+		const exportedColors = [];
+
+		colorCodeEls.forEach(colorCode => {
+			exportedColors.push(colorCode.textContent);
+		});
+
+		const RGBVals = [];
+
+		switch (colorMode) {
+			case ColorModes.hex:
+				exportedColors.forEach(color => {
+					let RGBColor = hexToRGB(color);
+
+					RGBColor = RGBColor.substring(4, RGBColor.length - 1);
+					let [r, g, b] = RGBColor.split(", ");
+
+					[r, g, b] = parseRGBVals([r, g, b]);
+
+					RGBVals.push([r, g, b]);
+				});
+
+				break;
+			case ColorModes.rgb:
+				exportedColors.forEach(color => {
+					color = color.substring(4, color.length - 1);
+					let [r, g, b] = color.split(", ");
+
+					[r, g, b] = parseRGBVals([r, g, b]);
+
+					RGBVals.push([r, g, b]);
+				});
+
+				break;
+			case ColorModes.hsl:
+				exportedColors.forEach(color => {
+					let hexColor = HSLToHex(color)
+					let RGBColor = hexToRGB(hexColor);
+
+					RGBColor = RGBColor.substring(4, RGBColor.length - 1);
+					let [r, g, b] = RGBColor.split(", ");
+
+					[r, g, b] = parseRGBVals([r, g, b]);
+
+					RGBVals.push([r, g, b]);
+				});
+
+				break;
+		}
+
+		parent.postMessage({ pluginMessage: { type: "export", exportedColors, RGBVals } }, "*");
+	});
+
+	function parseRGBVals(rgbArr) {
+		const parsedVals = [];
+
+		rgbArr.forEach(val => {
+			parsedVals.push(parseFloat(val) / 255);
+		});
+
+		return parsedVals;
+	}
+
+	const changeColorModeBtn = document.getElementById("change-color-mode-btn");
+
+	changeColorModeBtn.addEventListener("click", () => {
+
+		switch (colorMode) {
+			case ColorModes.hex: // changes Hex to RGB
+				colorCodeEls.forEach(code => {
+					const currentCode = code.textContent;
+					code.textContent = hexToRGB(currentCode);
+				});
+
+				colorMode++;
+				break;
+			case ColorModes.rgb: // changes RGB to HSL
+				colorCodeEls.forEach(code => {
+					const currentCode = code.textContent;
+					code.textContent = RGBToHSL(currentCode);
+				});
+
+				colorMode++;
+				break;
+			case ColorModes.hsl: // changes HSL to Hex
+				colorCodeEls.forEach(code => {
+					const currentCode = code.textContent;
+					code.textContent = HSLToHex(currentCode);
+				});
+
+				colorMode = 0;
+				break;
+		}
+	});
+
+	const newColorBtn = document.getElementById("new-color-btn");
+
+	newColorBtn.addEventListener("click", createColorBlock);
+
+	// ========== MENU ^ ==========
+
+	for (let i = 0; i < 3; i++) {
+		createColorBlock();
+	}
+
+</script>

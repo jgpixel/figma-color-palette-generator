@@ -1,0 +1,10 @@
+{
+  "name": "plugin-test-2",
+  "id": "1113856043179009368",
+  "api": "1.0.0",
+  "main": "code.js",
+  "editorType": [
+    "figma"
+  ],
+  "ui": "ui.html"
+}
